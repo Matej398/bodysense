@@ -36,3 +36,7 @@ The overlay positions can be adjusted in `src/App.css` by modifying the `.overla
 
 The project is automatically deployed via GitHub webhook to `https://bodysense.codelabhaven.com/`
 
+## Exercise Default Positions
+
+Each exercise has its own default circle positions that are automatically saved and loaded.
+
