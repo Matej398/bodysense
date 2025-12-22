@@ -1001,8 +1001,8 @@ function App() {
             {step === 'sealing' && (
               <motion.svg 
                 className="sealing-progress-ring"
-                width="72"
-                height="72"
+                width="60"
+                height="60"
                 style={{
                   position: 'absolute',
                   top: '50%',
@@ -1017,16 +1017,16 @@ function App() {
                 transition={{ duration: 0.3 }}
               >
                 <circle
-                  cx="36"
-                  cy="36"
-                  r="30"
+                  cx="30"
+                  cy="30"
+                  r="26"
                   fill="none"
                   stroke="rgba(233, 233, 226, 0.5)"
                   strokeWidth="8"
-                  strokeDasharray={`${2 * Math.PI * 30}`}
-                  strokeDashoffset={`${2 * Math.PI * 30 * (1 - sealingProgress / 100)}`}
+                  strokeDasharray={`${2 * Math.PI * 26}`}
+                  strokeDashoffset={`${2 * Math.PI * 26 * (1 - sealingProgress / 100)}`}
                   strokeLinecap="round"
-                  transform="rotate(-90 36 36)"
+                  transform="rotate(-90 30 30)"
                   style={{
                     transition: 'stroke-dashoffset 0.1s linear'
                   }}
