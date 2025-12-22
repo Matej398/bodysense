@@ -686,6 +686,7 @@
   animation: none;
   border: none;
   box-sizing: border-box;
+  overflow: visible !important;
 }
 
 .start-button.sealing:hover:not(:disabled) {

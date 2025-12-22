@@ -1025,25 +1025,27 @@ function App() {
               overflow: step === 'sealing' ? 'visible' : 'hidden' // Allow progress ring to be visible during sealing
             }}
           >
-            {step === 'sealing' && (
-              <motion.svg 
-                className="sealing-progress-ring"
-                width="60"
-                height="60"
-                viewBox="0 0 60 60"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 20,
-                  pointerEvents: 'none'
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+            <AnimatePresence>
+              {step === 'sealing' && (
+                <motion.svg 
+                  key="sealing-progress-ring"
+                  className="sealing-progress-ring"
+                  width="60"
+                  height="60"
+                  viewBox="0 0 60 60"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 20,
+                    pointerEvents: 'none'
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
                 <circle
                   cx="30"
                   cy="30"
@@ -1060,8 +1062,9 @@ function App() {
                     filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))'
                   }}
                 />
-              </motion.svg>
-            )}
+                </motion.svg>
+              )}
+            </AnimatePresence>
             {((step === 'massaging' || step === 'starting') || step === 'releasing') && (
               <motion.div 
                 className={step === 'releasing' ? 'massage-progress releasing-progress' : 'massage-progress'} 
