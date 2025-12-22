@@ -55,21 +55,56 @@ function App() {
   const currentImage = currentExercise?.images?.[currentImageSide] || currentExercise?.images?.[0] || { side: 'front', path: '/woman-image.png' }
   
   // Update getInitialPositions to use exercise index and image side
+  // Saved positions become the default for each exercise/image side combination
   const getInitialPositionsForExercise = (exerciseIndex, imageSide) => {
+    // First, try to load saved positions for this specific exercise/image side
     const saved = localStorage.getItem(`circlePositions_exercise_${exerciseIndex}_side_${imageSide}`)
     if (saved) {
       try {
-        return JSON.parse(saved)
+        const parsed = JSON.parse(saved)
+        // Validate that we have all 5 positions
+        if (parsed && Object.keys(parsed).length === 5) {
+          return parsed
+        }
       } catch (e) {
         console.error('Failed to parse saved positions:', e)
       }
     }
+    // If no saved positions for this exercise, try to load default saved positions
+    const defaultSaved = localStorage.getItem('circlePositions_default')
+    if (defaultSaved) {
+      try {
+        const parsed = JSON.parse(defaultSaved)
+        if (parsed && Object.keys(parsed).length === 5) {
+          return parsed
+        }
+      } catch (e) {
+        console.error('Failed to parse default positions:', e)
+      }
+    }
+    // Only use hardcoded defaultPositions if no saved positions exist
     return defaultPositions
   }
   
   const [overlayPositions, setOverlayPositions] = useState(() => 
     getInitialPositionsForExercise(initialExerciseIndex, initialImageSide)
   )
+
+  // Save positions to localStorage whenever they change (so they become the default)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && overlayPositions) {
+      // Save positions as default for current exercise and image side
+      localStorage.setItem(
+        `circlePositions_exercise_${currentExerciseIndex}_side_${currentImageSide}`,
+        JSON.stringify(overlayPositions)
+      )
+      // Also save as default positions (used for new exercises that don't have saved positions)
+      localStorage.setItem(
+        'circlePositions_default',
+        JSON.stringify(overlayPositions)
+      )
+    }
+  }, [overlayPositions, currentExerciseIndex, currentImageSide])
 
   const [currentCircle, setCurrentCircle] = useState(1)
   const [step, setStep] = useState('idle') // idle, sealing, starting, massaging, releasing, autoStarting
@@ -903,6 +938,41 @@ function App() {
               borderRadius: '30px' // Fixed radius - same for both states, just width changes
             }}
           >
+            {step === 'sealing' && (
+              <motion.svg 
+                className="sealing-progress-ring"
+                width="72"
+                height="72"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 5,
+                  pointerEvents: 'none'
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <circle
+                  cx="36"
+                  cy="36"
+                  r="30"
+                  fill="none"
+                  stroke="rgba(233, 233, 226, 0.5)"
+                  strokeWidth="8"
+                  strokeDasharray={`${2 * Math.PI * 30}`}
+                  strokeDashoffset={`${2 * Math.PI * 30 * (1 - sealingProgress / 100)}`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 36 36)"
+                  style={{
+                    transition: 'stroke-dashoffset 0.1s linear'
+                  }}
+                />
+              </motion.svg>
+            )}
             {((step === 'massaging' || step === 'starting') || step === 'releasing') && (
               <motion.div 
                 className={step === 'releasing' ? 'massage-progress releasing-progress' : 'massage-progress'} 
