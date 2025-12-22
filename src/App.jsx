@@ -1021,7 +1021,7 @@ function App() {
                   cy="30"
                   r="26"
                   fill="none"
-                  stroke="rgba(233, 233, 226, 0.5)"
+                  stroke="rgba(233, 233, 226, 0.7)"
                   strokeWidth="4"
                   strokeDasharray={`${2 * Math.PI * 26}`}
                   strokeDashoffset={`${2 * Math.PI * 26 * (1 - sealingProgress / 100)}`}
