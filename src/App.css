@@ -27,20 +27,21 @@
   justify-content: center;
   z-index: 1001;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease;
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
   contain: layout style paint;
+  isolation: isolate;
 }
 
 .menu-toggle-button:hover {
   background: #e0e0e0;
-  transform: scale(1.05);
+  transform: translateZ(0) scale(1.05);
 }
 
 .menu-toggle-button:active {
-  transform: scale(0.95);
+  transform: translateZ(0) scale(0.95);
 }
 
 /* Dashboard / Left Menu */
@@ -616,6 +617,8 @@
   line-height: 1;
   transform: translateY(-1px);
   overflow: hidden;
+  will-change: width;
+  contain: layout;
 }
 
 .start-button:hover:not(:disabled) {
