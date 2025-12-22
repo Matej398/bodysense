@@ -3,14 +3,33 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import './App.css'
 
 function App() {
-  // Default positions
-  const defaultPositions = {
-    1: { top: 61.13550815558344, right: 51.79086538461538 },
-    2: { top: 54.50321518193224, right: 56.02564102564103 },
-    3: { top: 47.43961731493099, right: 57.05128205128205 },
-    4: { top: 48.674717691342536, right: 43.333333333333336 },
-    5: { top: 56.3107747804266, right: 36.45833333333333 }
+  // Default positions for each exercise (used when no saved positions exist)
+  const exerciseDefaultPositions = {
+    0: { // Exercise 1
+      1: { top: 62.76662484316186, right: 48.71394230769231 },
+      2: { top: 54.50321518193224, right: 50.38461538461539 },
+      3: { top: 47.06320577164366, right: 52.69230769230769 },
+      4: { top: 47.04360100376411, right: 38.46153846153847 },
+      5: { top: 55.55795169385195, right: 32.09535256410256 }
+    },
+    1: { // Exercise 2
+      1: { top: 49.466750313676286, right: 28.713942307692307 },
+      2: { top: 42.8344573400251, right: 24.23076923076923 },
+      3: { top: 36.5236825595985, right: 22.17948717948718 },
+      4: { top: 31.35978670012547, right: 12.051282051282051 },
+      5: { top: 36.48643350062735, right: 6.454326923076923 }
+    },
+    2: { // Exercise 3
+      1: { top: 54.98745294855709, right: 45.89342948717949 },
+      2: { top: 48.355159974905895, right: 52.94871794871795 },
+      3: { top: 41.291562107904646, right: 55.00000000000001 },
+      4: { top: 42.526662484316184, right: 40.76923076923077 },
+      5: { top: 48.53160288582183, right: 40.55689102564102 }
+    }
   }
+  
+  // Fallback default positions (if exercise index doesn't exist)
+  const defaultPositions = exerciseDefaultPositions[0]
 
   // Exercises data structure
   const exercises = [
@@ -70,19 +89,12 @@ function App() {
         console.error('Failed to parse saved positions:', e)
       }
     }
-    // If no saved positions for this exercise, try to load default saved positions
-    const defaultSaved = localStorage.getItem('circlePositions_default')
-    if (defaultSaved) {
-      try {
-        const parsed = JSON.parse(defaultSaved)
-        if (parsed && Object.keys(parsed).length === 5) {
-          return parsed
-        }
-      } catch (e) {
-        console.error('Failed to parse default positions:', e)
-      }
+    // If no saved positions for this exercise, use exercise-specific defaults
+    const exerciseDefaults = exerciseDefaultPositions[exerciseIndex]
+    if (exerciseDefaults) {
+      return exerciseDefaults
     }
-    // Only use hardcoded defaultPositions if no saved positions exist
+    // Fallback to Exercise 1 defaults if exercise index doesn't exist
     return defaultPositions
   }
   
@@ -464,6 +476,33 @@ function App() {
     setDragging(null)
   }
 
+  // Helper function to export current positions - accessible via window.exportPositions()
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.exportPositions = () => {
+        const allPositions = {}
+        exercises.forEach((exercise, exerciseIndex) => {
+          exercise.images.forEach((image, imageSide) => {
+            const key = `circlePositions_exercise_${exerciseIndex}_side_${imageSide}`
+            const saved = localStorage.getItem(key)
+            if (saved) {
+              allPositions[key] = JSON.parse(saved)
+            }
+          })
+        })
+        const defaultSaved = localStorage.getItem('circlePositions_default')
+        if (defaultSaved) {
+          allPositions.default = JSON.parse(defaultSaved)
+        }
+        console.log('All saved positions:')
+        console.log(JSON.stringify(allPositions, null, 2))
+        console.log('\nCurrent positions (copy this to update defaultPositions):')
+        console.log(JSON.stringify(overlayPositions, null, 2))
+        return overlayPositions
+      }
+    }
+  }, [overlayPositions])
+
   const handleChangeExercise = () => {
     // Save current positions for current exercise and image side before switching
     localStorage.setItem(
@@ -515,6 +554,26 @@ function App() {
       }
     }
   }, [dragging, dragOffset, handleMouseMove, handleMouseUp])
+
+  // Initialize default positions for each exercise on first load (if not already saved)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      exercises.forEach((exercise, exerciseIndex) => {
+        exercise.images.forEach((image, imageSide) => {
+          const key = `circlePositions_exercise_${exerciseIndex}_side_${imageSide}`
+          const saved = localStorage.getItem(key)
+          if (!saved && exerciseDefaultPositions[exerciseIndex]) {
+            // Save exercise-specific defaults if no saved positions exist
+            localStorage.setItem(key, JSON.stringify(exerciseDefaultPositions[exerciseIndex]))
+          }
+        })
+      })
+      // Also save Exercise 1 positions as the general default
+      if (!localStorage.getItem('circlePositions_default') && exerciseDefaultPositions[0]) {
+        localStorage.setItem('circlePositions_default', JSON.stringify(exerciseDefaultPositions[0]))
+      }
+    }
+  }, [])
 
   // Trigger initial reveal animation on mount
   useEffect(() => {
