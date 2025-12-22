@@ -994,7 +994,8 @@ function App() {
               height: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
             }}
             style={{
-              borderRadius: '30px' // Fixed radius - same for both states, just width changes
+              borderRadius: '30px', // Fixed radius - same for both states, just width changes
+              overflow: step === 'sealing' ? 'visible' : 'hidden' // Allow progress ring to be visible during sealing
             }}
           >
             {step === 'sealing' && (
@@ -1007,7 +1008,7 @@ function App() {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  zIndex: 5,
+                  zIndex: 10,
                   pointerEvents: 'none'
                 }}
                 initial={{ opacity: 0 }}
