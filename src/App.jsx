@@ -1030,12 +1030,13 @@ function App() {
                 className="sealing-progress-ring"
                 width="60"
                 height="60"
+                viewBox="0 0 60 60"
                 style={{
                   position: 'absolute',
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  zIndex: 10,
+                  zIndex: 20,
                   pointerEvents: 'none'
                 }}
                 initial={{ opacity: 0 }}
@@ -1048,15 +1049,15 @@ function App() {
                   cy="30"
                   r="26"
                   fill="none"
-                  stroke="rgba(255, 255, 255, 0.6)"
-                  strokeWidth="4"
+                  stroke="rgba(255, 255, 255, 0.8)"
+                  strokeWidth="5"
                   strokeDasharray={`${2 * Math.PI * 26}`}
                   strokeDashoffset={`${2 * Math.PI * 26 * (1 - sealingProgress / 100)}`}
                   strokeLinecap="round"
                   transform="rotate(-90 30 30)"
                   style={{
                     transition: 'stroke-dashoffset 0.1s linear',
-                    filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.3))'
+                    filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))'
                   }}
                 />
               </motion.svg>
