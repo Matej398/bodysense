@@ -1021,14 +1021,15 @@ function App() {
                   cy="30"
                   r="26"
                   fill="none"
-                  stroke="rgba(233, 233, 226, 0.7)"
+                  stroke="rgba(255, 255, 255, 0.6)"
                   strokeWidth="4"
                   strokeDasharray={`${2 * Math.PI * 26}`}
                   strokeDashoffset={`${2 * Math.PI * 26 * (1 - sealingProgress / 100)}`}
                   strokeLinecap="round"
                   transform="rotate(-90 30 30)"
                   style={{
-                    transition: 'stroke-dashoffset 0.1s linear'
+                    transition: 'stroke-dashoffset 0.1s linear',
+                    filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.3))'
                   }}
                 />
               </motion.svg>
