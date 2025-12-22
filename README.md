@@ -32,3 +32,7 @@ npm run dev
 
 The overlay positions can be adjusted in `src/App.css` by modifying the `.overlay-1` through `.overlay-4` classes.
 
+## Deployment
+
+The project is automatically deployed via GitHub webhook to `https://bodysense.codelabhaven.com/`
+
