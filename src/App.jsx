@@ -555,22 +555,49 @@ function App() {
     }
   }, [dragging, dragOffset, handleMouseMove, handleMouseUp])
 
-  // Initialize default positions for each exercise on first load (if not already saved)
+  // Initialize default positions for each exercise on first load
+  // Version check to force update defaults when code changes
+  const POSITIONS_VERSION = '2.0'
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      exercises.forEach((exercise, exerciseIndex) => {
-        exercise.images.forEach((image, imageSide) => {
-          const key = `circlePositions_exercise_${exerciseIndex}_side_${imageSide}`
-          const saved = localStorage.getItem(key)
-          if (!saved && exerciseDefaultPositions[exerciseIndex]) {
-            // Save exercise-specific defaults if no saved positions exist
-            localStorage.setItem(key, JSON.stringify(exerciseDefaultPositions[exerciseIndex]))
-          }
+      const savedVersion = localStorage.getItem('circlePositions_version')
+      const needsUpdate = !savedVersion || savedVersion !== POSITIONS_VERSION
+      
+      if (needsUpdate) {
+        // Force update all exercise defaults
+        exercises.forEach((exercise, exerciseIndex) => {
+          exercise.images.forEach((image, imageSide) => {
+            const key = `circlePositions_exercise_${exerciseIndex}_side_${imageSide}`
+            if (exerciseDefaultPositions[exerciseIndex]) {
+              // Save exercise-specific defaults (overwrite existing)
+              localStorage.setItem(key, JSON.stringify(exerciseDefaultPositions[exerciseIndex]))
+            }
+          })
         })
-      })
-      // Also save Exercise 1 positions as the general default
-      if (!localStorage.getItem('circlePositions_default') && exerciseDefaultPositions[0]) {
-        localStorage.setItem('circlePositions_default', JSON.stringify(exerciseDefaultPositions[0]))
+        // Also save Exercise 1 positions as the general default
+        if (exerciseDefaultPositions[0]) {
+          localStorage.setItem('circlePositions_default', JSON.stringify(exerciseDefaultPositions[0]))
+        }
+        // Update current positions if on the exercise being updated
+        if (exerciseDefaultPositions[initialExerciseIndex]) {
+          setOverlayPositions(exerciseDefaultPositions[initialExerciseIndex])
+        }
+        // Save version to prevent re-updating
+        localStorage.setItem('circlePositions_version', POSITIONS_VERSION)
+      } else {
+        // Normal initialization - only if no saved positions exist
+        exercises.forEach((exercise, exerciseIndex) => {
+          exercise.images.forEach((image, imageSide) => {
+            const key = `circlePositions_exercise_${exerciseIndex}_side_${imageSide}`
+            const saved = localStorage.getItem(key)
+            if (!saved && exerciseDefaultPositions[exerciseIndex]) {
+              localStorage.setItem(key, JSON.stringify(exerciseDefaultPositions[exerciseIndex]))
+            }
+          })
+        })
+        if (!localStorage.getItem('circlePositions_default') && exerciseDefaultPositions[0]) {
+          localStorage.setItem('circlePositions_default', JSON.stringify(exerciseDefaultPositions[0]))
+        }
       }
     }
   }, [])
