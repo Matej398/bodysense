@@ -36,7 +36,6 @@ jobs:
           mkdir -p deploy/v1 deploy/v2
           cp -R dist/v1/. deploy/v1/
           cp -R dist/v2/. deploy/v2/
-          cp index.html deploy/
 
       - name: Deploy via rsync over SSH
         env:
