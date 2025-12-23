@@ -157,7 +157,6 @@ function App() {
   const savedMenuState = typeof window !== 'undefined' ? localStorage.getItem('menuOpen') : null
   const initialMenuState = savedMenuState ? savedMenuState === 'true' : false
   const [isMenuOpen, setIsMenuOpen] = useState(initialMenuState)
-const [activeVersionTab, setActiveVersionTab] = useState('v2')
   
   // Save menu state to localStorage when it changes
   useEffect(() => {
@@ -809,70 +808,9 @@ const [activeVersionTab, setActiveVersionTab] = useState('v2')
     return () => clearTimeout(timer)
   }, [])
 
-  // If viewing another built version, render an iframe container instead of the live app
-  if (activeVersionTab !== 'v2') {
-    const tabSrc = activeVersionTab === 'v1' ? '/version1/index.html' : '/version3/index.html'
-    const tabLabel = activeVersionTab === 'v1' ? 'Version 1 (backup_v1)' : 'Version 3 (add your build to /public/version3)'
-
-    return (
-      <div className="app-wrapper">
-        <div className="version-tabs">
-          <button 
-            className={activeVersionTab === 'v1' ? 'active' : ''} 
-            onClick={() => setActiveVersionTab('v1')}
-          >
-            Version 1
-          </button>
-          <button 
-            className={activeVersionTab === 'v2' ? 'active' : ''} 
-            onClick={() => setActiveVersionTab('v2')}
-          >
-            Version 2
-          </button>
-          <button 
-            className={activeVersionTab === 'v3' ? 'active' : ''} 
-            onClick={() => setActiveVersionTab('v3')}
-          >
-            Version 3
-          </button>
-        </div>
-        <div className="version-frame">
-          {activeVersionTab === 'v3' ? (
-            <div className="version-placeholder">
-              <p>{tabLabel}</p>
-              <p>Place your build in `/public/version3` to preview it here.</p>
-            </div>
-          ) : (
-            <iframe title={tabLabel} src={tabSrc} />
-          )}
-        </div>
-      </div>
-    )
-  }
-
 
   return (
     <div className="app-wrapper">
-      <div className="version-tabs">
-        <button 
-          className={activeVersionTab === 'v1' ? 'active' : ''} 
-          onClick={() => setActiveVersionTab('v1')}
-        >
-          Version 1
-        </button>
-        <button 
-          className={activeVersionTab === 'v2' ? 'active' : ''} 
-          onClick={() => setActiveVersionTab('v2')}
-        >
-          Version 2
-        </button>
-        <button 
-          className={activeVersionTab === 'v3' ? 'active' : ''} 
-          onClick={() => setActiveVersionTab('v3')}
-        >
-          Version 3
-        </button>
-      </div>
       {/* Menu Toggle Button - Hidden when menu is open */}
       {!isMenuOpen && (
         <button 
