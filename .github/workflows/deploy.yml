@@ -1,0 +1,44 @@
+name: Build and Deploy v1/v2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install deps (root)
+        run: npm install
+
+      - name: Build v1 and v2
+        run: npm run build:all
+
+      - name: Prepare deploy bundle
+        run: |
+          mkdir -p deploy/v1 deploy/v2
+          cp -R dist/v1/* deploy/v1/
+          cp -R dist/v2/* deploy/v2/
+          cp index.html deploy/
+
+      - name: Deploy via rsync over SSH
+        uses: burnett01/rsync-deployments@5.2.1
+        with:
+          switches: -az --delete
+          path: deploy/
+          remote_path: ${{ secrets.DEPLOY_PATH }}/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_KEY }}
+          remote_port: ${{ secrets.SSH_PORT }}
+
