@@ -10,6 +10,68 @@
   overflow-x: hidden;
 }
 
+.version-tabs {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  gap: 0;
+  z-index: 1200;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.version-tabs button {
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  opacity: 0.85;
+}
+
+.version-tabs button:hover {
+  background: rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+.version-tabs button.active {
+  background: #0f172a;
+  color: #f8fafc;
+  opacity: 1;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+}
+
+.version-frame {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0b0b;
+}
+
+.version-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
+
+.version-placeholder {
+  color: #fff;
+  text-align: center;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 /* Menu Toggle Button */
 .menu-toggle-button {
   position: fixed;
@@ -506,7 +568,24 @@
   margin-top: 4px;
 }
 
-/* Jumping dots animation for sealing */
+/* Sealing and releasing percentage display */
+.sealing-percentage,
+.releasing-percentage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  margin-left: 3px; /* Visual centering adjustment */
+}
+
+.percentage-sign {
+  font-size: 0.6em;
+  margin-left: 1px;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* Previous three dots animation settings (saved for reference):
 .button-dots {
   display: flex;
   align-items: center;
@@ -522,6 +601,7 @@
   border-radius: 50%;
   display: block;
 }
+*/
 
 /* Bottom Navigation */
 .bottom-nav {
@@ -555,7 +635,7 @@
   order: 2;
   flex-shrink: 1;
   min-width: 0;
-  max-width: 230px;
+  max-width: 206px;
   margin: 0 auto;
 }
 
@@ -596,7 +676,7 @@
 .start-button {
   /* Width, height, and border-radius are animated by Framer Motion */
   position: relative;
-  width: 230px;
+  width: 206px;
   height: 60px;
   border-radius: 30px;
   background: #000;
@@ -616,6 +696,7 @@
   padding: 0;
   line-height: 1;
   transform: translateY(-1px);
+  transform-origin: center center;
   overflow: hidden;
   will-change: width;
   contain: layout;
@@ -653,13 +734,14 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3;
+  z-index: 10;
 }
 
 .start-button.massaging {
   justify-content: center;
   padding: 0 20px;
   position: relative;
+  overflow: visible !important;
 }
 
 .button-timer {
@@ -667,7 +749,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3;
+  z-index: 10;
   text-align: center;
   white-space: nowrap;
   pointer-events: none;
@@ -676,7 +758,9 @@
 .pause-icon {
   position: absolute;
   right: 8px;
-  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
   flex-shrink: 0;
   width: 20px;
   height: 20px;
@@ -762,6 +846,7 @@
 /* Massaging Animation - removed button vibration */
 .start-button.massaging {
   background: #000;
+  overflow: visible !important;
 }
 
 
@@ -769,6 +854,16 @@
 .start-button.releasing {
   background: #000;
   animation: none;
+  overflow: visible !important;
+}
+
+.progress-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 30px;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .massage-progress {
@@ -777,14 +872,24 @@
   bottom: 0;
   left: 0;
   height: 100%;
+  width: 0%;
+  max-width: 100%;
   background: #2DCEE5;
   z-index: 1;
-  border-radius: 2px;
+  /* Round leading edge; keep trailing edge subtle (2px) */
+  border-radius: 30px 2px 2px 30px;
   will-change: width;
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transform: translateZ(0);
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: width 0.05s linear, opacity 0.6s ease;
+}
+
+.massage-progress.fade-out {
+  opacity: 0;
 }
 
 .releasing-progress {
