@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:v2": "vite build --outDir dist/v2 --base /v2/",
+    "build:v2": "vite build --config vite.config.v2.mjs",
     "build:v1": "cd versions/v1-src && npm install && npm run build:v1-local",
     "build:all": "npm run build:v1 && npm run build:v2",
     "preview": "vite preview"

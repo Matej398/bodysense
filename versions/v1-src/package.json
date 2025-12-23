@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:v1-local": "vite build --outDir ../../dist/v1 --base /v1/",
+    "build:v1-local": "vite build --config ./vite.config.v1.mjs --outDir ../../dist/v1",
     "preview": "vite preview"
   },
   "dependencies": {
