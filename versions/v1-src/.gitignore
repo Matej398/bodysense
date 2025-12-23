@@ -1,9 +1,9 @@
 node_modules
 dist
-public/version1
-public/version2
-backup_*.zip
 .DS_Store
 *.log
 .env
 .env.local
+
+
+
