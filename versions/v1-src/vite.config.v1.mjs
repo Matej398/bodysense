@@ -5,7 +5,7 @@ export default defineConfig({
   base: '/v1/',
   plugins: [react()],
   build: {
-    outDir: '../dist/v1',
+    outDir: '../../dist/v1',
     emptyOutDir: true
   }
 })
