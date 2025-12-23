@@ -41,4 +41,5 @@ jobs:
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_KEY }}
           remote_port: ${{ secrets.SSH_PORT }}
+          ssh_options: "-o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
 
