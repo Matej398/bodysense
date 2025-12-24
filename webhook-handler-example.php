@@ -11,6 +11,11 @@ $map = [
   'codelabhaven'     => '/var/www/html/codelabhaven'  // main site
 ];
 
+// Add all directories to safe.directory upfront to avoid "dubious ownership" errors
+foreach ($map as $repoName => $repoPath) {
+  exec("git config --global --add safe.directory $repoPath 2>&1", $safeDirOut, $safeDirCode);
+}
+
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
 $repo = $data['repository']['name'] ?? '';
@@ -22,10 +27,6 @@ if (!isset($map[$repo])) {
 }
 
 $path = $map[$repo];
-// Add safe.directory to avoid "dubious ownership" error
-$safeDirCmd = "git config --global --add safe.directory $path 2>&1";
-exec($safeDirCmd, $safeDirOut, $safeDirCode);
-// Now run git pull
 $cmd = "cd $path && git pull origin main 2>&1";
 exec($cmd, $out, $code);
 http_response_code($code === 0 ? 200 : 500);
