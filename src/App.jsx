@@ -1364,7 +1364,7 @@ function App() {
                           <motion.path
                             d={pathD}
                             fill="none"
-                            stroke="rgba(45, 206, 229, 0.4)"
+                            stroke="rgba(34, 197, 94, 0.4)"
                             strokeWidth={strokeWidth}
                             pathLength={normalizedPathLength}
                             strokeDasharray={dashArray}
@@ -1372,7 +1372,7 @@ function App() {
                             strokeLinecap="butt"
                             strokeLinejoin="miter"
                             style={{
-                              filter: 'drop-shadow(0 0 3px rgba(45, 206, 229, 0.2))',
+                              filter: 'drop-shadow(0 0 3px rgba(34, 197, 94, 0.2))',
                               strokeOpacity: pauseStrokeOpacity
                             }}
                             animate={{
