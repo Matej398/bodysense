@@ -27,8 +27,10 @@ if (!isset($map[$repo])) {
 }
 
 $path = $map[$repo];
-// Use -c flag to set safe.directory for this specific git command
-$cmd = "cd $path && git -c safe.directory=$path pull origin main 2>&1";
+// Ensure safe.directory is set (both globally and per-command as backup)
+exec("git config --global --add safe.directory '$path' 2>&1", $safeDirOut, $safeDirCode);
+// Use -c flag with quoted path to set safe.directory for this specific git command
+$cmd = "cd '$path' && git -c safe.directory='$path' pull origin main 2>&1";
 exec($cmd, $out, $code);
 http_response_code($code === 0 ? 200 : 500);
 echo implode("\n", $out);
