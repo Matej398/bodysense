@@ -29,9 +29,17 @@ exec($cmd, $out, $code);
 
 // If pull succeeded and it's a Node.js project (has package.json), run build
 if ($code === 0 && file_exists("$path/package.json")) {
-  $buildCmd = "cd $path && npm install --silent 2>&1 && npm run build 2>&1";
+  // Find npm location
+  exec("which npm 2>&1", $whichOut, $whichCode);
+  $npm = ($whichCode === 0 && !empty($whichOut[0])) ? trim($whichOut[0]) : '/usr/bin/npm';
+  $out[] = "Using npm at: $npm";
+  
+  $buildCmd = "cd $path && $npm install --silent 2>&1 && $npm run build 2>&1";
   exec($buildCmd, $buildOut, $buildCode);
   $out = array_merge($out, $buildOut);
+  if ($buildCode !== 0) {
+    $out[] = "Build failed with code: $buildCode";
+  }
   $code = $buildCode;
 }
 
