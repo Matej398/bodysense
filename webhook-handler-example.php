@@ -29,23 +29,27 @@ if (!isset($map[$repo])) {
 $path = $map[$repo];
 $escapedPath = escapeshellarg($path);
 
-// Create a temporary git config file
-$tempConfig = '/tmp/gitconfig_' . uniqid();
-file_put_contents($tempConfig, "[safe]\n\tdirectory = $path\n");
+// Set HOME to /tmp so git config has a writable location
+$homeDir = '/tmp';
+putenv("HOME=$homeDir");
 
-// Use GIT_CONFIG environment variable to use our custom config
-$env = "GIT_CONFIG_GLOBAL=$tempConfig GIT_CONFIG_SYSTEM=$tempConfig ";
+// First, ensure safe.directory is set in global config
+// Use --file to specify the exact config file location
+$configFile = "$homeDir/.gitconfig";
+$configCmd = "HOME=$homeDir git config --file $configFile --add safe.directory $escapedPath 2>&1";
+exec($configCmd, $configOut, $configCode);
 
-// Try git pull with the custom config
-$cmd = "cd $escapedPath && $env git pull origin main 2>&1";
+// Also try the standard --global approach
+$globalCmd = "HOME=$homeDir git config --global --add safe.directory $escapedPath 2>&1";
+exec($globalCmd, $globalOut, $globalCode);
+
+// Now try git pull with HOME set and using the config file
+$cmd = "cd $escapedPath && HOME=$homeDir git -c safe.directory=$escapedPath pull origin main 2>&1";
 exec($cmd, $out, $code);
 
-// Clean up temp config
-@unlink($tempConfig);
-
-// If that failed, try with -c flag as backup
-if ($code !== 0) {
-  $cmd2 = "cd $escapedPath && git -c safe.directory=$escapedPath pull origin main 2>&1";
+// If still failing, try with GIT_CONFIG pointing to our config file
+if ($code !== 0 && file_exists($configFile)) {
+  $cmd2 = "cd $escapedPath && HOME=$homeDir GIT_CONFIG_GLOBAL=$configFile git pull origin main 2>&1";
   exec($cmd2, $out2, $code2);
   if ($code2 === 0) {
     $out = $out2;
