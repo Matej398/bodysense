@@ -39,6 +39,10 @@ if ($code === 0 && file_exists("$path/package.json")) {
   $out[] = "Node: " . (isset($whichNode[0]) ? trim($whichNode[0]) : 'not found') . " " . (isset($nodeVersion[0]) ? trim($nodeVersion[0]) : '');
   $out[] = "NPM: $npm " . (isset($npmVersion[0]) ? trim($npmVersion[0]) : '');
   
+  // Clean node_modules to avoid ENOTEMPTY errors
+  $out[] = "Cleaning node_modules...";
+  exec("rm -rf $path/node_modules 2>&1", $cleanOut, $cleanCode);
+  
   // Run npm install
   $out[] = "Running npm install...";
   $installCmd = "cd $path && $npm install 2>&1";
