@@ -23,8 +23,8 @@ if (!isset($map[$repo])) {
 
 $path = $map[$repo];
 
-// Pull latest code
-$cmd = "cd $path && git pull origin main 2>&1";
+// Reset any local changes and pull latest code
+$cmd = "cd $path && git fetch origin main && git reset --hard origin/main 2>&1";
 exec($cmd, $out, $code);
 
 // dist folder is now included in git, no need to build on server
