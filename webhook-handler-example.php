@@ -29,31 +29,49 @@ if (!isset($map[$repo])) {
 $path = $map[$repo];
 $escapedPath = escapeshellarg($path);
 
-// Set HOME to /tmp so git config has a writable location
+// Get the current user (web server user) - with fallback
 $homeDir = '/tmp';
-putenv("HOME=$homeDir");
+if (function_exists('posix_geteuid') && function_exists('posix_getpwuid')) {
+  $currentUser = posix_getpwuid(posix_geteuid());
+  $homeDir = $currentUser['dir'] ?? '/tmp';
+}
 
-// First, ensure safe.directory is set in global config
-// Use --file to specify the exact config file location
-$configFile = "$homeDir/.gitconfig";
-$configCmd = "HOME=$homeDir git config --file $configFile --add safe.directory $escapedPath 2>&1";
-exec($configCmd, $configOut, $configCode);
-
-// Also try the standard --global approach
-$globalCmd = "HOME=$homeDir git config --global --add safe.directory $escapedPath 2>&1";
-exec($globalCmd, $globalOut, $globalCode);
-
-// Now try git pull with HOME set and using the config file
-$cmd = "cd $escapedPath && HOME=$homeDir git -c safe.directory=$escapedPath pull origin main 2>&1";
+// Try multiple approaches to set safe.directory
+// Method 1: Use -c flag directly (most reliable)
+$cmd = "cd $escapedPath && git -c safe.directory=$escapedPath pull origin main 2>&1";
 exec($cmd, $out, $code);
 
-// If still failing, try with GIT_CONFIG pointing to our config file
-if ($code !== 0 && file_exists($configFile)) {
-  $cmd2 = "cd $escapedPath && HOME=$homeDir GIT_CONFIG_GLOBAL=$configFile git pull origin main 2>&1";
+// Method 2: If that fails, try with HOME set
+if ($code !== 0) {
+  $cmd2 = "cd $escapedPath && HOME=$homeDir git -c safe.directory=$escapedPath pull origin main 2>&1";
   exec($cmd2, $out2, $code2);
   if ($code2 === 0) {
     $out = $out2;
     $code = $code2;
+  }
+}
+
+// Method 3: Try setting it in a temp config file first
+if ($code !== 0) {
+  $tempConfig = '/tmp/gitconfig_' . getmypid();
+  file_put_contents($tempConfig, "[safe]\n\tdirectory = $path\n");
+  $cmd3 = "cd $escapedPath && GIT_CONFIG_GLOBAL=$tempConfig git pull origin main 2>&1";
+  exec($cmd3, $out3, $code3);
+  @unlink($tempConfig);
+  if ($code3 === 0) {
+    $out = $out3;
+    $code = $code3;
+  }
+}
+
+// Method 4: Try using --git-dir to bypass ownership check
+if ($code !== 0) {
+  $gitDir = "$path/.git";
+  $cmd4 = "git --git-dir=$gitDir --work-tree=$escapedPath -c safe.directory=$escapedPath pull origin main 2>&1";
+  exec($cmd4, $out4, $code4);
+  if ($code4 === 0) {
+    $out = $out4;
+    $code = $code4;
   }
 }
 
