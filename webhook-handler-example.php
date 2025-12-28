@@ -41,7 +41,10 @@ if ($code === 0 && file_exists("$path/package.json")) {
   
   // Clean node_modules to avoid ENOTEMPTY errors
   $out[] = "Cleaning node_modules...";
-  exec("rm -rf $path/node_modules 2>&1", $cleanOut, $cleanCode);
+  // Use find + delete for more reliable removal
+  exec("find $path/node_modules -type f -delete 2>&1; find $path/node_modules -type d -empty -delete 2>&1; rm -rf $path/node_modules 2>&1", $cleanOut, $cleanCode);
+  // Also clear npm cache for this project
+  exec("$npm cache clean --force 2>&1", $cacheOut, $cacheCode);
   
   // Run npm install
   $out[] = "Running npm install...";
