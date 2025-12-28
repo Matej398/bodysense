@@ -29,18 +29,36 @@ exec($cmd, $out, $code);
 
 // If pull succeeded and it's a Node.js project (has package.json), run build
 if ($code === 0 && file_exists("$path/package.json")) {
-  // Find npm location
-  exec("which npm 2>&1", $whichOut, $whichCode);
-  $npm = ($whichCode === 0 && !empty($whichOut[0])) ? trim($whichOut[0]) : '/usr/bin/npm';
-  $out[] = "Using npm at: $npm";
+  // Find npm and node location
+  exec("which npm 2>&1", $whichNpm);
+  exec("which node 2>&1", $whichNode);
+  exec("node --version 2>&1", $nodeVersion);
+  exec("npm --version 2>&1", $npmVersion);
   
-  $buildCmd = "cd $path && $npm install --silent 2>&1 && $npm run build 2>&1";
-  exec($buildCmd, $buildOut, $buildCode);
-  $out = array_merge($out, $buildOut);
-  if ($buildCode !== 0) {
-    $out[] = "Build failed with code: $buildCode";
+  $npm = (!empty($whichNpm[0])) ? trim($whichNpm[0]) : '/usr/bin/npm';
+  $out[] = "Node: " . (isset($whichNode[0]) ? trim($whichNode[0]) : 'not found') . " " . (isset($nodeVersion[0]) ? trim($nodeVersion[0]) : '');
+  $out[] = "NPM: $npm " . (isset($npmVersion[0]) ? trim($npmVersion[0]) : '');
+  
+  // Run npm install
+  $out[] = "Running npm install...";
+  $installCmd = "cd $path && $npm install 2>&1";
+  exec($installCmd, $installOut, $installCode);
+  $out = array_merge($out, $installOut);
+  
+  if ($installCode !== 0) {
+    $out[] = "npm install failed with code: $installCode";
+    $code = $installCode;
+  } else {
+    // Run npm build
+    $out[] = "Running npm run build...";
+    $buildCmd = "cd $path && $npm run build 2>&1";
+    exec($buildCmd, $buildOut, $buildCode);
+    $out = array_merge($out, $buildOut);
+    if ($buildCode !== 0) {
+      $out[] = "npm run build failed with code: $buildCode";
+    }
+    $code = $buildCode;
   }
-  $code = $buildCode;
 }
 
 http_response_code($code === 0 ? 200 : 500);
