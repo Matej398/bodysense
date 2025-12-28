@@ -22,7 +22,18 @@ if (!isset($map[$repo])) {
 }
 
 $path = $map[$repo];
+
+// Pull latest code
 $cmd = "cd $path && git pull origin main 2>&1";
 exec($cmd, $out, $code);
+
+// If pull succeeded and it's a Node.js project (has package.json), run build
+if ($code === 0 && file_exists("$path/package.json")) {
+  $buildCmd = "cd $path && npm install --silent 2>&1 && npm run build 2>&1";
+  exec($buildCmd, $buildOut, $buildCode);
+  $out = array_merge($out, $buildOut);
+  $code = $buildCode;
+}
+
 http_response_code($code === 0 ? 200 : 500);
 echo implode("\n", $out);
