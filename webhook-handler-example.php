@@ -27,12 +27,31 @@ if (!isset($map[$repo])) {
 }
 
 $path = $map[$repo];
-// Set safe.directory globally (may fail silently, that's ok)
-exec("git config --global --add safe.directory '$path' 2>&1", $safeDirOut, $safeDirCode);
-// Use -c flag - this is the most reliable method
-// The -c flag sets the config for this single command
 $escapedPath = escapeshellarg($path);
-$cmd = "cd $escapedPath && git -c safe.directory=$escapedPath pull origin main 2>&1";
+
+// Create a temporary git config file
+$tempConfig = '/tmp/gitconfig_' . uniqid();
+file_put_contents($tempConfig, "[safe]\n\tdirectory = $path\n");
+
+// Use GIT_CONFIG environment variable to use our custom config
+$env = "GIT_CONFIG_GLOBAL=$tempConfig GIT_CONFIG_SYSTEM=$tempConfig ";
+
+// Try git pull with the custom config
+$cmd = "cd $escapedPath && $env git pull origin main 2>&1";
 exec($cmd, $out, $code);
+
+// Clean up temp config
+@unlink($tempConfig);
+
+// If that failed, try with -c flag as backup
+if ($code !== 0) {
+  $cmd2 = "cd $escapedPath && git -c safe.directory=$escapedPath pull origin main 2>&1";
+  exec($cmd2, $out2, $code2);
+  if ($code2 === 0) {
+    $out = $out2;
+    $code = $code2;
+  }
+}
+
 http_response_code($code === 0 ? 200 : 500);
 echo implode("\n", $out);
