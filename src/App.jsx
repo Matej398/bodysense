@@ -571,6 +571,9 @@ function App() {
         if (showReleasingShortly) {
           return 'Applicator releasing shortly...'
         }
+        if (isPaused) {
+          return 'Hybrid Massage paused'
+        }
         return showMassageInProgress ? 'Hybrid Massage in progress' : 'Starting Hybrid Massage'
       case 'releasing':
         return 'Applicator releasing'
@@ -1182,32 +1185,101 @@ function App() {
             delay: 0.7
           }}
         >
-          <motion.button 
-            className="nav-button back-button"
-            initial={{ opacity: 0 }}
-            animate={hasAnimated ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ 
-              duration: 0.5, 
-              ease: [0.4, 0, 0.2, 1],
-              delay: 0.7
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </motion.button>
+          <AnimatePresence mode="wait">
+            {(step === 'massaging' || step === 'starting') ? (
+              <motion.button
+                key="pause-button"
+                className={`nav-button ${isPaused ? 'play-button' : 'pause-button'}`}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: isPaused ? 1.12 : 1
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ 
+                  duration: 0.2,
+                  ease: [0.4, 0, 0.2, 1]
+                }}
+                style={{ transformOrigin: 'center center' }}
+                onClick={handleStart}
+              >
+                <AnimatePresence mode="wait">
+                  {isPaused ? (
+                    <motion.svg 
+                      key="play-icon"
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, transition: { duration: 0 } }}
+                    >
+                      <polygon points="6,4 20,12 6,20" strokeLinejoin="round"/>
+                    </motion.svg>
+                  ) : (
+                    <motion.svg 
+                      key="pause-icon"
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, transition: { duration: 0 } }}
+                      transition={{ 
+                        opacity: {
+                          duration: 0.25,
+                          ease: [0.4, 0, 0.2, 1],
+                          delay: 0.5
+                        }
+                      }}
+                    >
+                      <line x1="8" y1="6" x2="8" y2="18"/>
+                      <line x1="16" y1="6" x2="16" y2="18"/>
+                    </motion.svg>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            ) : (
+              <motion.button 
+                key="back-button"
+                className="nav-button back-button"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ 
+                  duration: 0.15,
+                  ease: [0.4, 0, 0.2, 1]
+                }}
+                style={{ transformOrigin: 'center center' }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+              </motion.button>
+            )}
+          </AnimatePresence>
           
           <motion.button 
             className={`start-button ${step === 'sealing' || step === 'resumeSealing' ? 'sealing' : ''} ${(step === 'massaging' || step === 'starting') ? 'massaging' : ''} ${step === 'releasing' ? 'releasing' : ''} ${step === 'autoStarting' ? 'auto-starting' : ''}`}
             onClick={handleStart}
-            disabled={step === 'starting' || step === 'releasing' || step === 'resumeSealing'}
+            disabled={step === 'starting' || step === 'releasing' || step === 'resumeSealing' || step === 'massaging'}
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={hasAnimated ? { 
               opacity: 1, 
               scale: 1, 
               y: 0,
-              width: step === 'idle' || step === 'complete' ? 206 : (step === 'autoStarting' ? 60 : 160),
-              height: 60
+              width: step === 'idle' || step === 'complete' || step === 'autoStarting' ? 76 : 64,
+              height: step === 'idle' || step === 'complete' || step === 'autoStarting' ? 76 : 64
             } : { opacity: 0, scale: 0.8, y: 20 }}
             transition={{
               opacity: { duration: 0.6, ease: [0.34, 1.56, 0.64, 1], delay: 0.8 },
@@ -1217,23 +1289,21 @@ function App() {
               height: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
             }}
             style={{
-              borderRadius: '30px', // Fixed radius - same for both states, just width changes
+              borderRadius: '50%', // Always round
               overflow: (step === 'sealing' || step === 'massaging' || step === 'starting' || step === 'releasing' || step === 'autoStarting') ? 'visible' : 'hidden', // Allow progress ring to be visible
               transformOrigin: 'center center' // Resize from center
             }}
           >
             {(!hideProgressRing) && (((step === 'sealing' ? showSealingProgressRing : true) || resumeSealing) && (step === 'sealing' || step === 'massaging' || step === 'starting' || step === 'releasing' || resumeSealing)) && (
               (() => {
-                const isRound = step === 'autoStarting';
-                const buttonWidth = step === 'autoStarting' ? 60 : 160;
-                const buttonHeight = 60;
-                const borderRadius = 30;
-                const strokeWidth = 7; // Thicker stroke
+                // Progress border is outside the button, 70x70 size
+                const borderSize = 70;
+                const strokeWidth = 4; // 4px weight
                 const offset = strokeWidth / 2; // center stroke on edge
 
-                // Ring sits just outside the button: add full stroke padding on all sides
-                const svgWidth = buttonWidth + strokeWidth * 2;
-                const svgHeight = buttonHeight + strokeWidth * 2;
+                // Ring sits just outside the 74x74 border: add full stroke padding on all sides
+                const svgWidth = borderSize + strokeWidth * 2;
+                const svgHeight = borderSize + strokeWidth * 2;
 
                 return (
                   <motion.svg 
@@ -1270,59 +1340,11 @@ function App() {
                       // Define isReleasing early so it can be used in path calculations
                       const isReleasing = step === 'releasing';
 
-                      // Calculate path length and path data based on current shape
-                      let pathLength;
-                      let pathD;
-
-                      if (isRound) {
-                        const radius = (buttonHeight / 2) + offset;
-                        pathLength = 2 * Math.PI * radius;
-                        // For releasing step, start from 12 o'clock (top) and go clockwise
-                        if (isReleasing) {
-                          pathD = `M ${centerX},${centerY - radius} A ${radius},${radius} 0 1,1 ${centerX},${centerY + radius} A ${radius},${radius} 0 1,1 ${centerX},${centerY - radius}`;
-                        } else {
-                          pathD = `M ${centerX},${centerY - radius} A ${radius},${radius} 0 1,1 ${centerX},${centerY + radius} A ${radius},${radius} 0 1,1 ${centerX},${centerY - radius}`;
-                        }
-                      } else {
-                        // Expand path slightly so stroke stays outside the button
-                        const w = buttonWidth + strokeWidth;
-                        const h = buttonHeight + strokeWidth;
-                        const r = borderRadius + offset;
-                        const x = strokeWidth / 2;
-                        const y = strokeWidth / 2;
-                        const topRight = x + w - r;
-                        const rightTop = y + r;
-                        const rightBottom = y + h - r;
-                        const bottomLeft = x + r;
-                        const leftBottom = y + h - r;
-                        const leftTop = y + r;
-                        const topCenter = x + w / 2;
-                        // Start at top-center so dash collapse ends in the middle
-                        if (isReleasing) {
-                          pathD = `M ${topCenter},${y}
-                                   L ${topRight},${y}
-                                   A ${r},${r} 0 0,1 ${x + w},${rightTop}
-                                   L ${x + w},${rightBottom}
-                                   A ${r},${r} 0 0,1 ${topRight},${y + h}
-                                   L ${bottomLeft},${y + h}
-                                   A ${r},${r} 0 0,1 ${x},${leftBottom}
-                                   L ${x},${leftTop}
-                                   A ${r},${r} 0 0,1 ${x + r},${y}
-                                   L ${topCenter},${y} Z`;
-                        } else {
-                          pathD = `M ${topCenter},${y}
-                                   L ${topRight},${y}
-                                   A ${r},${r} 0 0,1 ${x + w},${rightTop}
-                                   L ${x + w},${rightBottom}
-                                   A ${r},${r} 0 0,1 ${topRight},${y + h}
-                                   L ${bottomLeft},${y + h}
-                                   A ${r},${r} 0 0,1 ${x},${leftBottom}
-                                   L ${x},${leftTop}
-                                   A ${r},${r} 0 0,1 ${x + r},${y}
-                                   L ${topCenter},${y} Z`;
-                        }
-                        pathLength = 2 * (w - 2 * r) + 2 * (h - 2 * r) + 2 * Math.PI * r;
-                      }
+                      // Progress border is a 74x74 circle
+                      const radius = (borderSize / 2) + offset;
+                      const pathLength = 2 * Math.PI * radius;
+                      // For releasing step, start from 12 o'clock (top) and go clockwise
+                      const pathD = `M ${centerX},${centerY - radius} A ${radius},${radius} 0 1,1 ${centerX},${centerY + radius} A ${radius},${radius} 0 1,1 ${centerX},${centerY - radius}`;
                       
                       const isBorderMode = step === 'massaging' || step === 'starting';
                       const isPausedMassage = step === 'massaging' && isPaused;
@@ -1364,7 +1386,7 @@ function App() {
                           <motion.path
                             d={pathD}
                             fill="none"
-                            stroke="rgba(45, 206, 229, 0.4)"
+                            stroke="rgba(45, 206, 229, 0.8)"
                             strokeWidth={strokeWidth}
                             pathLength={normalizedPathLength}
                             strokeDasharray={dashArray}
@@ -1372,7 +1394,7 @@ function App() {
                             strokeLinecap="butt"
                             strokeLinejoin="miter"
                             style={{
-                              filter: 'drop-shadow(0 0 3px rgba(45, 206, 229, 0.2))',
+                              filter: 'drop-shadow(0 0 3px rgba(45, 206, 229, 0.4))',
                               strokeOpacity: pauseStrokeOpacity
                             }}
                             animate={{
@@ -1419,7 +1441,8 @@ function App() {
                         opacity: 1,
                         width: isPaused
                           ? `${Math.min(100, ((10 - pausedProgress) / 10) * 100)}%`
-                          : `${Math.min(100, ((10 - timeRemainingPrecise) / 10) * 100)}%`
+                          : `${Math.min(100, ((10 - timeRemainingPrecise) / 10) * 100)}%`,
+                        backgroundColor: isPaused ? 'rgba(233, 233, 226, 0.4)' : '#2DCEE5'
                       }}
                       exit={{ 
                         opacity: 0,
@@ -1460,21 +1483,7 @@ function App() {
                 <span className="percentage-sign">%</span>
               </motion.span>
             ) : (step === 'massaging' || step === 'starting') ? (
-                isPaused ? (
-                  <motion.span 
-                    key="resume"
-                    className="button-text"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ 
-                      duration: 0.3,
-                      ease: [0.4, 0, 0.2, 1]
-                    }}
-                  >
-                    Resume
-                  </motion.span>
-                ) : (
+                (
                   <motion.div
                     key="timer-pause-container"
                     initial={{ opacity: 0 }}
@@ -1515,38 +1524,6 @@ function App() {
                         >
                           {formatTime(timeRemaining)}
                         </motion.span>
-                        {!pauseIconDelay && (
-                          <motion.svg 
-                            className="pause-icon" 
-                            width="20" 
-                            height="20" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="#ffffff" 
-                            strokeWidth="2.5" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ 
-                              duration: 0.4, 
-                              ease: [0.4, 0, 0.2, 1], 
-                              delay: step === 'starting' ? 0.7 : 0.1
-                            }}
-                            style={{ 
-                              position: 'absolute',
-                              right: '16px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              zIndex: 20,
-                              pointerEvents: 'none',
-                              willChange: 'transform'
-                            }}
-                          >
-                            <line x1="8" y1="6" x2="8" y2="18"/>
-                            <line x1="16" y1="6" x2="16" y2="18"/>
-                          </motion.svg>
-                        )}
                       </>
                     )}
                   </motion.div>
@@ -1599,20 +1576,78 @@ function App() {
           </motion.button>
           
           <motion.button 
-            className="nav-button menu-button"
+            className={`nav-button ${(step === 'massaging' || step === 'starting') && isPaused ? 'close-button' : 'menu-button'}`}
             initial={{ opacity: 0 }}
-            animate={hasAnimated ? { opacity: 1 } : { opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ 
-              duration: 0.5, 
-              ease: [0.4, 0, 0.2, 1],
-              delay: 0.9
+              opacity: { duration: 0.5, ease: [0.4, 0, 0.2, 1], delay: 0.9 }
+            }}
+            style={{ transformOrigin: 'center center' }}
+            onClick={() => {
+              if ((step === 'massaging' || step === 'starting') && isPaused) {
+                // Reset to idle state
+                setStep('idle')
+                setIsPaused(false)
+                setTimeRemaining(10)
+                setTimeRemainingPrecise(10)
+                setSealingProgress(0)
+                setReleasingProgress(0)
+                setShowMassageInProgress(false)
+                setShowReleasingShortly(false)
+                setShowProgressAndTimer(false)
+                setFadeOutProgress(false)
+                setHideProgressRing(false)
+                setResumeSealing(false)
+                setResumeSealingProgress(0)
+                setPausedProgress(10)
+                if (timerRef.current) clearInterval(timerRef.current)
+                if (autoStartTimerRef.current) clearInterval(autoStartTimerRef.current)
+                if (resumeSealingTimerRef.current) clearInterval(resumeSealingTimerRef.current)
+              }
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="6" r="1.5"/>
-              <circle cx="12" cy="12" r="1.5"/>
-              <circle cx="12" cy="18" r="1.5"/>
-            </svg>
+            <AnimatePresence mode="wait">
+              {(step === 'massaging' || step === 'starting') && isPaused ? (
+                <motion.svg 
+                  key="close-icon"
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0 } }}
+                >
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                </motion.svg>
+              ) : (
+                <motion.svg 
+                  key="menu-icon"
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ 
+                    opacity: {
+                      duration: 0.2,
+                      ease: [0.4, 0, 0.2, 1]
+                    }
+                  }}
+                >
+                  <circle cx="12" cy="6" r="1.5"/>
+                  <circle cx="12" cy="12" r="1.5"/>
+                  <circle cx="12" cy="18" r="1.5"/>
+                </motion.svg>
+              )}
+            </AnimatePresence>
           </motion.button>
         </motion.div>
 

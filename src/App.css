@@ -517,7 +517,7 @@
 }
 
 .percentage-sign {
-  font-size: 1em;
+  font-size: 0.7em;
   margin-left: 1px;
   line-height: 1;
   display: inline-block;
@@ -552,18 +552,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 28px;
   box-sizing: border-box;
   contain: layout;
 }
 
 /* Position all buttons to prevent overlap */
-.bottom-nav .back-button {
+.bottom-nav .back-button,
+.bottom-nav .pause-button,
+.bottom-nav .play-button {
   flex-shrink: 0;
   order: 1;
 }
 
-.bottom-nav .menu-button {
+.bottom-nav .menu-button,
+.bottom-nav .close-button {
   flex-shrink: 0;
   order: 3;
 }
@@ -571,10 +574,9 @@
 /* Center button - in the middle, with space on both sides */
 .bottom-nav .start-button {
   order: 2;
-  flex-shrink: 1;
+  flex-shrink: 0;
   min-width: 0;
-  max-width: 206px;
-  margin: 0 auto;
+  max-width: none;
 }
 
 .nav-button {
@@ -611,12 +613,39 @@
   height: 20px;
 }
 
+.nav-button.pause-button,
+.nav-button.play-button {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: #ffffff;
+  transform-origin: center center;
+}
+
+.nav-button.pause-button:hover,
+.nav-button.play-button:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: #ffffff;
+}
+
+.nav-button.play-button {
+  background: rgba(0, 0, 0, 1) !important;
+}
+
+.nav-button.close-button {
+  background: rgba(0, 0, 0, 1) !important;
+  color: #ffffff;
+}
+
+.nav-button.close-button:hover {
+  background: rgba(0, 0, 0, 1) !important;
+  color: #ffffff;
+}
+
 .start-button {
   /* Width, height, and border-radius are animated by Framer Motion */
   position: relative;
-  width: 206px;
-  height: 60px;
-  border-radius: 30px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
   background: #000;
   color: #fff;
   border: none;
@@ -636,7 +665,7 @@
   transform: translateY(-1px);
   transform-origin: center center;
   overflow: hidden;
-  will-change: width;
+  will-change: width, height;
   contain: layout;
 }
 
@@ -662,6 +691,16 @@
               transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.button-text.button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-text.button-icon svg {
+  display: block;
+}
+
 .button-text.auto-starting-countdown {
   font-size: 26px;
   font-weight: 500;
@@ -680,6 +719,9 @@
   padding: 0 20px;
   position: relative;
   overflow: visible !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
 }
 
 .button-timer {
@@ -783,7 +825,9 @@
 
 /* Massaging Animation - removed button vibration */
 .start-button.massaging {
-  background: #000;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
   overflow: visible !important;
 }
 
@@ -814,8 +858,8 @@
   max-width: 100%;
   background: #2DCEE5;
   z-index: 1;
-  /* Round leading edge; keep trailing edge subtle (2px) */
-  border-radius: 30px 2px 2px 30px;
+  /* Round leading edge; sharp trailing edge */
+  border-radius: 30px 0 0 30px;
   will-change: width;
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
