@@ -137,6 +137,8 @@ function App() {
   const [resumeSealing, setResumeSealing] = useState(false)
   const [resumeSealingProgress, setResumeSealingProgress] = useState(0)
   const [pauseIconDelay, setPauseIconDelay] = useState(false)
+  const [isManualStart, setIsManualStart] = useState(false)
+  const [showPauseHint, setShowPauseHint] = useState(false)
   
   const timerRef = useRef(null)
   const sealingTimerRef = useRef(null)
@@ -333,15 +335,31 @@ function App() {
   // Gate showing the timer/pause UI
   useEffect(() => {
     if (step === 'starting') {
-      // Show timer immediately (no resize delay)
+      // Always show the container when starting
       setShowProgressAndTimer(true)
+      
+      // Show pause hint briefly for manual starts only, then show timer
+      if (isManualStart) {
+        setShowPauseHint(true)
+        const hintTimeout = setTimeout(() => {
+          setShowPauseHint(false)
+          setIsManualStart(false) // Reset after showing hint
+        }, 1200) // Show pause icon for 1200ms (1.2 seconds)
+        return () => clearTimeout(hintTimeout)
+      } else {
+        // Auto-start: show timer immediately
+        setShowPauseHint(false)
+      }
     } else if (step === 'massaging') {
       // Ensure timer is visible
       setShowProgressAndTimer(true)
+      setShowPauseHint(false)
+      setIsManualStart(false) // Reset when massage starts
     } else {
       setShowProgressAndTimer(false)
+      setShowPauseHint(false)
     }
-  }, [step])
+  }, [step, isManualStart])
 
   // Resume sealing animation after pause (acts like fresh sealing, then resumes timer)
   useEffect(() => {
@@ -452,7 +470,8 @@ function App() {
         setAutoStartCountdown(prev => {
           if (prev <= 1) {
             clearInterval(autoStartTimerRef.current)
-            // Automatically start sealing
+            // Automatically start sealing (not manual, so no pause hint)
+            setIsManualStart(false)
             setStep('sealing')
             setSealingProgress(0)
             setTimeRemaining(10)
@@ -474,9 +493,13 @@ function App() {
 
   const handleStart = () => {
     if (step === 'idle') {
+      setIsManualStart(true)
+      setShowPauseHint(false) // Reset hint state
       setStep('sealing')
     } else if (step === 'complete') {
       // Restart flow from circle 1
+      setIsManualStart(true)
+      setShowPauseHint(false) // Reset hint state
       setCurrentCircle(1)
       setSealingProgress(0)
       setReleasingProgress(0)
@@ -1420,11 +1443,11 @@ function App() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ 
-                      duration: 0.3,
-                      ease: [0.4, 0, 0.2, 1],
-                      delay: step === 'starting' ? 0.5 : 0
-                    }}
+                      transition={{ 
+                        duration: 0.3,
+                        ease: [0.4, 0, 0.2, 1],
+                        delay: 0
+                      }}
                     style={{ 
                       position: 'absolute',
                       top: 0,
@@ -1432,30 +1455,76 @@ function App() {
                       width: '100%',
                       height: '100%',
                       zIndex: 15,
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
                     {showProgressAndTimer && (
-                      <>
-                        <motion.span 
-                          className="button-text button-timer"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ 
-                            duration: 0.4, 
-                            ease: [0.4, 0, 0.2, 1],
-                            delay: step === 'starting' ? 0.5 : 0
-                          }}
-                          style={{
-                            position: 'absolute',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        >
-                          {formatTime(timeRemaining)}
-                        </motion.span>
-                      </>
+                      <AnimatePresence mode="wait">
+                        {showPauseHint && step === 'starting' ? (
+                          <motion.span
+                            key="pause-hint"
+                            className="button-text"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ 
+                              duration: 0.5, 
+                              ease: [0.4, 0, 0.2, 1]
+                            }}
+                            style={{
+                              position: 'relative',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 25,
+                              pointerEvents: 'none'
+                            }}
+                          >
+                            <svg 
+                              width="24" 
+                              height="24" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="#ffffff" 
+                              strokeWidth="2.5" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                              style={{ 
+                                color: '#ffffff',
+                                opacity: 1
+                              }}
+                            >
+                              <line x1="8" y1="6" x2="8" y2="18"/>
+                              <line x1="16" y1="6" x2="16" y2="18"/>
+                            </svg>
+                          </motion.span>
+                        ) : (
+                          <motion.span 
+                            key="timer"
+                            className="button-text button-timer"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ 
+                              duration: 0.4, 
+                              ease: [0.4, 0, 0.2, 1],
+                              delay: 0.1
+                            }}
+                            style={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              zIndex: 10
+                            }}
+                          >
+                            {formatTime(timeRemaining)}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     )}
                   </motion.div>
                 )
