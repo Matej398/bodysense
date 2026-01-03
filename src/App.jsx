@@ -1185,94 +1185,25 @@ function App() {
             delay: 0.7
           }}
         >
-          <AnimatePresence mode="wait">
-            {(step === 'massaging' || step === 'starting') ? (
-              <motion.button
-                key="pause-button"
-                className={`nav-button ${isPaused ? 'play-button' : 'pause-button'}`}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: isPaused ? 1.12 : 1
-                }}
-                exit={{ opacity: 0, scale: 0 }}
-                transition={{ 
-                  duration: 0.2,
-                  ease: [0.4, 0, 0.2, 1]
-                }}
-                style={{ transformOrigin: 'center center' }}
-                onClick={handleStart}
-              >
-                <AnimatePresence mode="wait">
-                  {isPaused ? (
-                    <motion.svg 
-                      key="play-icon"
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0, transition: { duration: 0 } }}
-                    >
-                      <polygon points="6,4 20,12 6,20" strokeLinejoin="round"/>
-                    </motion.svg>
-                  ) : (
-                    <motion.svg 
-                      key="pause-icon"
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0, transition: { duration: 0 } }}
-                      transition={{ 
-                        opacity: {
-                          duration: 0.25,
-                          ease: [0.4, 0, 0.2, 1],
-                          delay: 0.5
-                        }
-                      }}
-                    >
-                      <line x1="8" y1="6" x2="8" y2="18"/>
-                      <line x1="16" y1="6" x2="16" y2="18"/>
-                    </motion.svg>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            ) : (
-              <motion.button 
-                key="back-button"
-                className="nav-button back-button"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                transition={{ 
-                  duration: 0.15,
-                  ease: [0.4, 0, 0.2, 1]
-                }}
-                style={{ transformOrigin: 'center center' }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-              </motion.button>
-            )}
-          </AnimatePresence>
+          <motion.button 
+            className="nav-button back-button"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ 
+              duration: 0.15,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            style={{ transformOrigin: 'center center' }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </motion.button>
           
           <motion.button 
             className={`start-button ${step === 'sealing' || step === 'resumeSealing' ? 'sealing' : ''} ${(step === 'massaging' || step === 'starting') ? 'massaging' : ''} ${step === 'releasing' ? 'releasing' : ''} ${step === 'autoStarting' ? 'auto-starting' : ''}`}
             onClick={handleStart}
-            disabled={step === 'starting' || step === 'releasing' || step === 'resumeSealing' || step === 'massaging'}
+            disabled={step === 'starting' || step === 'releasing' || step === 'resumeSealing' || step === 'sealing'}
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={hasAnimated ? { 
               opacity: 1, 
@@ -1391,8 +1322,8 @@ function App() {
                             pathLength={normalizedPathLength}
                             strokeDasharray={dashArray}
                             strokeDashoffset={dashOffset}
-                            strokeLinecap="butt"
-                            strokeLinejoin="miter"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                             style={{
                               filter: 'drop-shadow(0 0 3px rgba(45, 206, 229, 0.4))',
                               strokeOpacity: pauseStrokeOpacity
@@ -1576,78 +1507,25 @@ function App() {
           </motion.button>
           
           <motion.button 
-            className={`nav-button ${(step === 'massaging' || step === 'starting') && isPaused ? 'close-button' : 'menu-button'}`}
+            className="nav-button menu-button"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ 
               opacity: { duration: 0.5, ease: [0.4, 0, 0.2, 1], delay: 0.9 }
             }}
             style={{ transformOrigin: 'center center' }}
-            onClick={() => {
-              if ((step === 'massaging' || step === 'starting') && isPaused) {
-                // Reset to idle state
-                setStep('idle')
-                setIsPaused(false)
-                setTimeRemaining(10)
-                setTimeRemainingPrecise(10)
-                setSealingProgress(0)
-                setReleasingProgress(0)
-                setShowMassageInProgress(false)
-                setShowReleasingShortly(false)
-                setShowProgressAndTimer(false)
-                setFadeOutProgress(false)
-                setHideProgressRing(false)
-                setResumeSealing(false)
-                setResumeSealingProgress(0)
-                setPausedProgress(10)
-                if (timerRef.current) clearInterval(timerRef.current)
-                if (autoStartTimerRef.current) clearInterval(autoStartTimerRef.current)
-                if (resumeSealingTimerRef.current) clearInterval(resumeSealingTimerRef.current)
-              }
-            }}
+            onClick={() => setIsMenuOpen(true)}
           >
-            <AnimatePresence mode="wait">
-              {(step === 'massaging' || step === 'starting') && isPaused ? (
-                <motion.svg 
-                  key="close-icon"
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, transition: { duration: 0 } }}
-                >
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                </motion.svg>
-              ) : (
-                <motion.svg 
-                  key="menu-icon"
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ 
-                    opacity: {
-                      duration: 0.2,
-                      ease: [0.4, 0, 0.2, 1]
-                    }
-                  }}
-                >
-                  <circle cx="12" cy="6" r="1.5"/>
-                  <circle cx="12" cy="12" r="1.5"/>
-                  <circle cx="12" cy="18" r="1.5"/>
-                </motion.svg>
-              )}
-            </AnimatePresence>
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+            >
+              <circle cx="12" cy="6" r="1.5"/>
+              <circle cx="12" cy="12" r="1.5"/>
+              <circle cx="12" cy="18" r="1.5"/>
+            </svg>
           </motion.button>
         </motion.div>
 
