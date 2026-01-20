@@ -337,24 +337,16 @@ function App() {
     if (step === 'starting') {
       // Always show the container when starting
       setShowProgressAndTimer(true)
-      
-      // Show pause hint briefly for manual starts only, then show timer
-      if (isManualStart) {
-        setShowPauseHint(true)
-        const hintTimeout = setTimeout(() => {
-          setShowPauseHint(false)
-          setIsManualStart(false) // Reset after showing hint
-        }, 1200) // Show pause icon for 1200ms (1.2 seconds)
-        return () => clearTimeout(hintTimeout)
-      } else {
-        // Auto-start: show timer immediately
-        setShowPauseHint(false)
-      }
+      setShowPauseHint(false)
     } else if (step === 'massaging') {
       // Ensure timer is visible
       setShowProgressAndTimer(true)
       setShowPauseHint(false)
       setIsManualStart(false) // Reset when massage starts
+    } else if (step === 'resumeSealing') {
+      // Show timer and Pause text during resume sealing (not percentage)
+      setShowProgressAndTimer(true)
+      setShowPauseHint(false)
     } else {
       setShowProgressAndTimer(false)
       setShowPauseHint(false)
@@ -528,9 +520,8 @@ function App() {
       setShowProgressAndTimer(false)
     } else if (step === 'massaging') {
       if (isPaused) {
-        // Resume flow: hide ring, re-run sealing animation, then continue
+        // Resume flow: re-run sealing animation, then continue (keep timer visible)
         setFadeOutProgress(false)
-        setShowProgressAndTimer(false)
         setHideProgressRing(true)
         setResumeSealing(false)
         setResumeSealingProgress(0)
@@ -1224,16 +1215,16 @@ function App() {
           </motion.button>
           
           <motion.button 
-            className={`start-button ${step === 'sealing' || step === 'resumeSealing' ? 'sealing' : ''} ${(step === 'massaging' || step === 'starting') ? 'massaging' : ''} ${step === 'releasing' ? 'releasing' : ''} ${step === 'autoStarting' ? 'auto-starting' : ''}`}
+            className={`start-button ${step === 'sealing' ? 'sealing' : ''} ${(step === 'massaging' || step === 'starting' || step === 'resumeSealing') ? 'massaging' : ''} ${step === 'releasing' ? 'releasing' : ''} ${step === 'autoStarting' ? 'auto-starting' : ''} ${isPaused ? 'paused' : ''}`}
             onClick={handleStart}
             disabled={step === 'starting' || step === 'releasing' || step === 'resumeSealing' || step === 'sealing'}
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={hasAnimated ? { 
-              opacity: 1, 
-              scale: 1, 
+            animate={hasAnimated ? {
+              opacity: 1,
+              scale: 1,
               y: 0,
-              width: step === 'idle' || step === 'complete' || step === 'autoStarting' ? 76 : 64,
-              height: step === 'idle' || step === 'complete' || step === 'autoStarting' ? 76 : 64
+              width: step === 'idle' || step === 'complete' || step === 'autoStarting' ? 76 : 84,
+              height: step === 'idle' || step === 'complete' || step === 'autoStarting' ? 76 : 84
             } : { opacity: 0, scale: 0.8, y: 20 }}
             transition={{
               opacity: { duration: 0.6, ease: [0.34, 1.56, 0.64, 1], delay: 0.8 },
@@ -1250,12 +1241,12 @@ function App() {
           >
             {(!hideProgressRing) && (((step === 'sealing' ? showSealingProgressRing : true) || resumeSealing) && (step === 'sealing' || step === 'massaging' || step === 'starting' || step === 'releasing' || resumeSealing)) && (
               (() => {
-                // Progress border is outside the button, 70x70 size
-                const borderSize = 70;
+                // Progress border is outside the button, 90x90 size (for 84px button)
+                const borderSize = 90;
                 const strokeWidth = 4; // 4px weight
                 const offset = strokeWidth / 2; // center stroke on edge
 
-                // Ring sits just outside the 74x74 border: add full stroke padding on all sides
+                // Ring sits just outside the button: add full stroke padding on all sides
                 const svgWidth = borderSize + strokeWidth * 2;
                 const svgHeight = borderSize + strokeWidth * 2;
 
@@ -1340,7 +1331,7 @@ function App() {
                           <motion.path
                             d={pathD}
                             fill="none"
-                            stroke="rgba(45, 206, 229, 0.8)"
+                            stroke="#2DCEE5"
                             strokeWidth={strokeWidth}
                             pathLength={normalizedPathLength}
                             strokeDasharray={dashArray}
@@ -1375,68 +1366,91 @@ function App() {
               })()
             )}
             
-            {((step === 'massaging' || step === 'starting')) && (
+            {/* Inner ring for exercise progress */}
+            {((step === 'massaging' || step === 'starting' || step === 'resumeSealing')) && (
               <AnimatePresence>
-                {showMassageInProgress && (
-                  <motion.div 
-                    className="progress-clip"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ 
-                      duration: 0.5, 
-                      ease: [0.4, 0, 0.2, 1]
-                    }}
-                  >
-                    <motion.div 
-                      className={`massage-progress ${fadeOutProgress ? 'fade-out' : ''}`}
-                      initial={{ width: '0%', opacity: 0 }}
-                      animate={{ 
-                        opacity: 1,
-                        width: isPaused
-                          ? `${Math.min(100, ((10 - pausedProgress) / 10) * 100)}%`
-                          : `${Math.min(100, ((10 - timeRemainingPrecise) / 10) * 100)}%`,
-                        backgroundColor: isPaused ? 'rgba(233, 233, 226, 0.4)' : '#2DCEE5'
-                      }}
-                      exit={{ 
-                        opacity: 0,
-                        transition: { 
-                          duration: 0.4, 
-                          ease: [0.4, 0, 0.2, 1]
-                        }
-                      }}
-                      transition={{ 
-                        opacity: { 
-                          duration: 0.5, 
-                          ease: [0.4, 0, 0.2, 1]
-                        },
-                        width: { 
-                          duration: (isPaused ? 0.3 : 0.05), 
-                          ease: isPaused ? [0.4, 0, 0.2, 1] : 'linear'
-                        }
-                      }}
-                    />
-                  </motion.div>
+                {(showMassageInProgress || step === 'resumeSealing') && (
+                  (() => {
+                    // Inner ring sits on inside edge of button (84px button)
+                    const innerRingSize = 76;
+                    const innerStrokeWidth = 4;
+                    const innerSvgWidth = innerRingSize + innerStrokeWidth * 2;
+                    const innerSvgHeight = innerRingSize + innerStrokeWidth * 2;
+                    const innerCenterX = innerSvgWidth / 2;
+                    const innerCenterY = innerSvgHeight / 2;
+                    const innerRadius = (innerRingSize / 2) + (innerStrokeWidth / 2);
+                    const innerPathD = `M ${innerCenterX},${innerCenterY - innerRadius} A ${innerRadius},${innerRadius} 0 1,1 ${innerCenterX},${innerCenterY + innerRadius} A ${innerRadius},${innerRadius} 0 1,1 ${innerCenterX},${innerCenterY - innerRadius}`;
+
+                    // Calculate exercise progress (0 to 1 as timer counts down from 10 to 0)
+                    const exerciseProgress = isPaused
+                      ? Math.min(1, (10 - pausedProgress) / 10)
+                      : Math.min(1, (10 - timeRemainingPrecise) / 10);
+                    const clampedExerciseProgress = Math.max(0, Math.min(1, exerciseProgress));
+                    const exerciseDashOffset = 1 - clampedExerciseProgress;
+
+                    return (
+                      <motion.svg
+                        key="exercise-ring"
+                        className="exercise-progress-ring"
+                        width={innerSvgWidth}
+                        height={innerSvgHeight}
+                        viewBox={`0 0 ${innerSvgWidth} ${innerSvgHeight}`}
+                        preserveAspectRatio="xMidYMid meet"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          zIndex: 15,
+                          pointerEvents: 'none'
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isPaused ? 0.5 : 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          opacity: { duration: 0.5, ease: [0.4, 0, 0.2, 1] }
+                        }}
+                      >
+                        <motion.path
+                          d={innerPathD}
+                          fill="none"
+                          stroke="#B4B9BA"
+                          strokeWidth={innerStrokeWidth}
+                          pathLength={1}
+                          strokeDasharray={1}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          initial={{ strokeDashoffset: 1 }}
+                          animate={{
+                            strokeDashoffset: fadeOutProgress ? exerciseDashOffset : exerciseDashOffset
+                          }}
+                          transition={{
+                            strokeDashoffset: { duration: 0.05, ease: 'linear' }
+                          }}
+                        />
+                      </motion.svg>
+                    );
+                  })()
                 )}
               </AnimatePresence>
             )}
             <AnimatePresence mode="wait" initial={false}>
-            {(step === 'sealing' || step === 'resumeSealing') ? (
-              <motion.span 
+            {step === 'sealing' ? (
+              <motion.span
                   key="sealing"
                 className="button-text sealing-percentage"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ 
-                    duration: 0.3, 
+                  transition={{
+                    duration: 0.3,
                     ease: [0.4, 0, 0.2, 1]
                   }}
               >
-                {Math.round(step === 'resumeSealing' ? resumeSealingProgress : sealingProgress)}
+                {Math.round(sealingProgress)}
                 <span className="percentage-sign">%</span>
               </motion.span>
-            ) : (step === 'massaging' || step === 'starting') ? (
+            ) : (step === 'massaging' || step === 'starting' || step === 'resumeSealing') ? (
                 (
                   <motion.div
                     key="timer-pause-container"
@@ -1462,69 +1476,46 @@ function App() {
                     }}
                   >
                     {showProgressAndTimer && (
-                      <AnimatePresence mode="wait">
-                        {showPauseHint && step === 'starting' ? (
-                          <motion.span
-                            key="pause-hint"
-                            className="button-text"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ 
-                              duration: 0.5, 
-                              ease: [0.4, 0, 0.2, 1]
-                            }}
-                            style={{
-                              position: 'relative',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              zIndex: 25,
-                              pointerEvents: 'none'
-                            }}
-                          >
-                            <svg 
-                              width="24" 
-                              height="24" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="#ffffff" 
-                              strokeWidth="2.5" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round"
-                              style={{ 
-                                color: '#ffffff',
-                                opacity: 1
-                              }}
-                            >
-                              <line x1="8" y1="6" x2="8" y2="18"/>
-                              <line x1="16" y1="6" x2="16" y2="18"/>
-                            </svg>
-                          </motion.span>
-                        ) : (
-                          <motion.span 
-                            key="timer"
-                            className="button-text button-timer"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ 
-                              duration: 0.4, 
-                              ease: [0.4, 0, 0.2, 1],
-                              delay: 0.1
-                            }}
-                            style={{
-                              position: 'absolute',
-                              left: '50%',
-                              top: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              zIndex: 10
-                            }}
-                          >
-                            {formatTime(timeRemaining)}
-                          </motion.span>
+                      <motion.div
+                        key="timer-with-pause"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.4,
+                          ease: [0.4, 0, 0.2, 1],
+                          delay: 0.1
+                        }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '2px',
+                          marginTop: '6px'
+                        }}
+                      >
+                        <span style={{
+                          fontSize: '18px',
+                          fontFamily: '"Plus Jakarta Sans", sans-serif',
+                          fontWeight: 600,
+                          color: '#ffffff',
+                          lineHeight: '1'
+                        }}>
+                          {formatTime(timeRemaining)}
+                        </span>
+                        {(step === 'starting' || step === 'massaging' || step === 'resumeSealing') && (
+                          <span style={{
+                            fontSize: '11px',
+                            fontFamily: '"Plus Jakarta Sans", sans-serif',
+                            fontWeight: 600,
+                            color: '#ffffff',
+                            opacity: 0.9
+                          }}>
+                            {isPaused ? 'Resume' : 'Pause'}
+                          </span>
                         )}
-                      </AnimatePresence>
+                      </motion.div>
                     )}
                   </motion.div>
                 )

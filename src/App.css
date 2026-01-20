@@ -719,9 +719,12 @@
   padding: 0 20px;
   position: relative;
   overflow: visible !important;
-  background: rgba(0, 0, 0, 0.4) !important;
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  background: rgba(92, 92, 92, 0.8) !important;
+}
+
+/* Keep grey background when paused (showing Resume) */
+.start-button.massaging.paused {
+  background: rgba(92, 92, 92, 0.8) !important;
 }
 
 .button-timer {
@@ -825,9 +828,7 @@
 
 /* Massaging Animation - removed button vibration */
 .start-button.massaging {
-  background: rgba(0, 0, 0, 0.4) !important;
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  background: rgba(92, 92, 92, 0.8) !important;
   overflow: visible !important;
 }
 
