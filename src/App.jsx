@@ -1153,14 +1153,16 @@ function App() {
         </div>
 
         {/* Instructions */}
-        <motion.div 
+        <motion.div
           className="instructions"
           initial={{ opacity: 0, y: 20 }}
-          animate={hasAnimated ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ 
-            duration: 0.7, 
-            ease: [0.34, 1.56, 0.64, 1],
-            delay: 1.2
+          animate={hasAnimated ? {
+            opacity: 1,
+            y: (step === 'sealing' || step === 'starting' || step === 'massaging' || step === 'resumeSealing' || step === 'releasing') ? -8 : 0
+          } : { opacity: 0, y: 20 }}
+          transition={{
+            opacity: { duration: 0.7, ease: [0.34, 1.56, 0.64, 1], delay: 1.2 },
+            y: { duration: 0 }
           }}
         >
           <AnimatePresence mode="wait">

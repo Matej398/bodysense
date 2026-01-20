@@ -469,7 +469,7 @@
 /* Instructions */
 .instructions {
   position: absolute;
-  bottom: 120px;
+  bottom: 130px;
   left: 0;
   right: 0;
   padding: 20px 30px;
@@ -544,7 +544,7 @@
 /* Bottom Navigation */
 .bottom-nav {
   position: absolute;
-  bottom: 40px;
+  bottom: 50px;
   left: 0;
   right: 0;
   height: 80px;
