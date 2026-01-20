@@ -3,5 +3,6 @@ node_modules
 *.log
 .env
 .env.local
-backup_*.zip
+backup_v1.zip
+backup_v2.zip
 
